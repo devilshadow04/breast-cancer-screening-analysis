@@ -1,0 +1,289 @@
+---
+title: "A Call for Yearly Breast Cancer Screenings in America"
+author: "Cong Thanh Vu - 530784058"
+subtitle: "Project 3 - Breast Cancer Data"
+date: "University of Sydney | DATA1001 | October 2023"
+
+output:
+  html_document:
+    fig_caption: yes
+    number_sections: no
+    self_contained: yes
+    theme: cerulean
+    # Other themes can be found at: https://bootswatch.com/
+    css: 
+      - https://use.fontawesome.com/releases/v5.0.6/css/all.css
+    #This will allow you to insert icons in your document, thanks to [Font Awesome](http://fontawesome.io).
+    #You will find an examples below.
+    # If you are knitting your document but not connected to the internet, place a "#" in front of the css line above with the font-awesome.min.css line to comment it out. This will let you knit the document in draft form until you connect again and knit the final. Note that when you do this some elements will be missing from the knitted slides. 
+    toc: true
+    #This adds a Table of Contents (toc).
+    toc_depth: 3
+    #This controls the number of subheadings included in the toc.
+    toc_float: true
+    #This allows toc to update relative to your location as you scroll down the html page.
+    code_folding: hide
+    #code_folding can be changed to "hide"" if you want the all your code to be collapsed when you open the document
+    
+    # More information: http://rmarkdown.rstudio.com/html_document_format.html
+---
+
+```{r warning = FALSE, message = FALSE}
+library(tidyverse)
+library(ggmosaic)
+library(dplyr)
+breast_cancer <- read.csv("breast_cancer.csv", header=FALSE)
+edited_breast_cancer = breast_cancer[2:4025, ]
+age = as.numeric(edited_breast_cancer$V1)
+race = edited_breast_cancer$V2
+marital_status = edited_breast_cancer$V3
+status = edited_breast_cancer$V16
+t_stage = edited_breast_cancer$V4
+n_stage = edited_breast_cancer$V5
+sixth_stage = edited_breast_cancer$V6
+differentiate = edited_breast_cancer$V7
+grade = edited_breast_cancer$V8
+a_stage = edited_breast_cancer$V9
+tumor_size = as.numeric(edited_breast_cancer$V10)
+estrogen_status = edited_breast_cancer$V11
+progesterone_status = edited_breast_cancer$V12
+regional_node_examined = as.numeric(edited_breast_cancer$V13)
+regional_node_positive = as.numeric(edited_breast_cancer$V14)
+survival_month = as.numeric(edited_breast_cancer$V15)
+
+library(scales)
+dead = filter(edited_breast_cancer, status == "Dead")
+alive = filter(edited_breast_cancer, status == "Alive")
+```
+
+# 1. Client Bio & Recommendation 
+
+## Client
+Office on Women's Health
+https://www.womenshealth.gov/
+
+- Part of the U.S. Department of Health and Human Services (DHHS) 
+
+- It aims to promote health equity for women and girls through sex- and gender-specific approaches. OWH develops programs, educates health professionals, and disseminates health information to motivate behavior change in the public.
+
+## Recommendation
+
+Breast cancer, as per the National Cancer Institute, is the most prevalent cancer in America. Shockingly, many cases are diagnosed in women without any identifiable risk factors other than gender and age.
+
+Based on evidence, it's crucial for women over 40 to undergo annual breast cancer screenings. Early detection enhances treatment success and overall health. By spreading awareness about these screenings, women can be empowered to prioritize their well-being and make informed decisions about their health. To take this initiative further, organizing free breast cancer screening events across America stands as an ideal approach to provide accessible healthcare and early detection opportunities, potentially saving many lives.
+
+
+# 2. Evidence
+
+The dataset, updated in November 2017 from the SEER Program of the NCI, focuses on women diagnosed with a specific type of breast cancer between 2006 and 2010. Information on patients with unknown tumor size, unchecked lymph nodes, or survival less than a month post-diagnosis was excluded. Studying 4024 patients, each row represents one breast cancer patient, and each column details various patient attributes.
+
+## Understanding Breast Cancer Risks
+
+The boxplot indicates that breast cancer is more common among middle-aged women, placing them at a higher risk. While younger women have a lower chance of getting the disease, they still represent a portion of cases. Hence, women under 45 should stay vigilant about their health and be aware of potential risks.
+
+```{r}
+ggplot(data = edited_breast_cancer, aes(x = age)) + geom_boxplot(fill = "khaki") + xlab("Age") + ggtitle("Age Distribution") + theme(axis.title.y = element_blank(), axis.text.y = element_blank(), axis.ticks.y = element_blank())
+
+```
+
+Also, according to WHO, approximately half of breast cancer cases develop in women without identifiable risk factors other than gender (female) and age (over 40). Indeed, it is shown in the following diagram.
+
+#### {.tabset}
+
+##### Figure 1
+
+```{r}
+dead_differentiate = dead$V7
+dead_n_stage = dead$V5
+dead_t_stage = dead$V4
+dead_a_stage = dead$V9
+dead_differentiate = ordered(dead_differentiate, levels = c("Well differentiated", "Moderately differentiated", "Poorly differentiated", "Undifferentiated"))
+
+ggplot(data=dead, aes(x=dead_t_stage, y = after_stat(count/sum(count)))) +
+geom_bar(fill = "lightsteelblue") + scale_y_continuous(labels = percent) + xlab("T Stage") + ylab("Percentage") + ggtitle("T Stage Distribution of Dead Patients")
+```
+
+##### Figure 2
+
+``` {r}
+ggplot(data=dead, aes(x=dead_n_stage, y = after_stat(count/sum(count)))) +
+geom_bar(fill = "tan4") + scale_y_continuous(labels = percent) + xlab("N Stage") + ylab("Percentage") + ggtitle("N Stage Distribution of Dead Patients")
+```
+
+
+##### Figure 3
+
+``` {r}
+ggplot(data=dead, aes(x=dead_differentiate, y = after_stat(count/sum(count)))) +
+geom_bar(fill = 'green4') + scale_y_continuous(labels = percent) + xlab("Differentiate") + ylab("Percentage") + ggtitle("Differentiate Distribution of Dead Patients")
+```
+
+
+
+#### {-}
+
+
+- T (Tumour) indicates the depth of tumour invasion - a higher number means a further spread of cancer.
+
+- N (Nodes) indicates lymph node involvement - a number describes the extent of cancer spreading to nodes near the bladder.
+
+Analyzing these bar graphs, the majority of fatalities occur during the early stage. Nearly half succumbed to cancer at stage T2 and N1. Most of these patients had moderately differentiated cancer cells, indicating abnormality when compared to healthy cells.
+
+
+```{r warning = FALSE, message = FALSE}
+dead_tumor_size = as.numeric(dead$V10)
+ggplot(dead, aes(x = dead_tumor_size)) + geom_histogram(fill = "orchid4") + scale_x_continuous(breaks = seq(0, 140, by = 25)) + xlab("Tumor Size")  + ggtitle("Tumor Size Distribution of Dead Patients") + theme(axis.title.y = element_blank(), axis.text.y = element_blank(), axis.ticks.y = element_blank())
+```
+
+The data shows alarming trends, indicating most people face fatal when the tumor size was only 20-25 mm, approximately the size of a peanut. In summary, all of these graphs shows that danger can strike unexpectedly, and people might not be aware of it. Therefore, getting checked annually is crucial to catch any potential issues early.
+
+
+## Myths And The Truth Behind
+
+The data challenges common beliefs about breast cancer. Some thought a small tumor or youth ensured better survival chances. However, the graph tells a different story. Even with a small tumor or at young age, the disease can be serious and progress rapidly.
+
+
+#### {.tabset}
+
+##### Figure 1
+
+```{r warning = FALSE, message = FALSE}
+dead_survival_month = as.numeric(dead$V15)
+dead_tumor_size = as.numeric(dead$V10)
+ggplot(data = dead, aes(dead_tumor_size, dead_survival_month)) + geom_point() + xlab("Tumor Size") + ylab("Survival Month") + ggtitle("Scatter Plot between Tumor Size and Survival Month of Dead Patients")
+
+```
+
+
+##### Table 1
+
+```{r}
+fit = lm(dead_survival_month ~ dead_tumor_size, data = dead)
+summary(fit)
+```
+
+##### {-}
+
+
+#### {.tabset}
+
+##### Figure 2
+
+```{r warning = FALSE, message = FALSE}
+dead_age = as.numeric(dead$V1)
+dead_survival_month = as.numeric(dead$V15)
+ggplot(data = dead, aes(dead_age, dead_survival_month)) + geom_point() + xlab("Age") + ylab("Survival Month") + ggtitle("Scatter Plot between Survival Month and Age of Dead Patients")
+
+```
+
+
+##### Table 2
+
+```{r}
+fit = lm(dead_survival_month ~ dead_age, data = dead)
+summary(fit)
+```
+
+#### {-}
+
+We conducted regression tests to explore linear trends between tumor size/age and survival month of dead patients.
+
+- H0: There is no linear trend (Slope = 0)
+ 
+- H1: There is a linear trend (Slope != 0)
+
+
+Both models showed p-value higher than 0.05, indicating no linear relation in these figures.
+
+The tests help us figure out if these factors affect how long someone survives breast cancer. The results emphasize that regardless of age or tumor size, breast cancer can impact anyone. Catching it early through regular check-ups remains crucial for our overall health.
+
+
+# 3. Acknowledgments
+
+Breast cancer. (2022, August 8). Kaggle. https://www.kaggle.com/datasets/reihanenamdari/breast-cancer/data
+
+Teng, J. (2019, January 18). SEER Breast Cancer data. IEEE DataPort. https://ieee-dataport.org/open-access/seer-breast-cancer-data
+
+Cancer staging. (2022, October 14). National Cancer Institute. https://www.cancer.gov/about-cancer/diagnosis-staging/staging
+
+World Health Organization: WHO & World Health Organization: WHO. (2023, July 12). Breast cancer. https://www.who.int/news-room/fact-sheets/detail/breast-cancer
+
+Breast cancer facts and statistics 2023. (n.d.). https://www.breastcancer.org/facts-statistics
+
+Du Cancer, C. C. S. /. S. C. (n.d.-b). Grading cancer. Canadian Cancer Society. https://cancer.ca/en/cancer-information/what-is-cancer/stage-and-grade/grading
+
+Data1001/Data. (2020c, December 15). RGuide. https://diwarrensydney.github.io/
+
+# 4. Appendix
+
+## Client Choice
+
+Our data, sourced from the SEER Program of the NCI, is vital for cancer statistics in America. Choosing the Office on Women's Health was a fitting decision due to the credibility of its data source and its wide recognition in America. Recognizing the financial barriers to breast cancer screenings, advocating for free screenings is crucial. By connecting with the Office on Women's Health and SEER, our report becomes trustworthy and relevant.
+
+
+## Statisitcal Analyses
+
+In the beginning, I decided to use graphs to showcase different aspects of the data. Graphs serve as powerful tools, giving a quick and clear picture of complex information, making the data more understandable for everyone. In this case, I wanted to emphasize the unexpected and abrupt nature of fatalities among cancer patients. 
+
+To show that there are no relationship between survival month and tumor size/age, linear modelling were used in second part. There are some assumptions we need to check:
+
+- The residuals should be independent
+ 
+- The residuals should follow a normal distribution: Using QQ Plot, generally, the values increase linearly, indicating a normal distribution. Minor deviations are observed at the extremities; however, the large sample size allows us to assume normality, as per the Central Limit Theorem.
+
+- The residuals should have a constant variance: Residuals Plot show random scattered around the line residuals equal to 0, which suggest linearity and homoscedasticity.
+
+
+#### {.tabset}
+
+##### Figure 1
+```{r warning = FALSE, message = FALSE}
+dead_survival_month = as.numeric(dead$V15)
+dead_tumor_size = as.numeric(dead$V10)
+ggplot(data = dead, aes(dead_tumor_size, dead_survival_month)) + geom_point() +geom_smooth(method = "lm", se = FALSE) + xlab("tumor_size") + ylab("survival_month")
+```
+
+##### Residual Plot
+
+``` {r}
+fit = lm(dead_survival_month ~ dead_tumor_size, data = dead)
+plot(fit, which = 1)
+```
+
+##### QQ Plot
+
+```{r}
+plot(fit, which = 2)
+```
+
+#### {-}
+
+#### {.tabset}
+
+##### Figure 2
+
+```{r warning = FALSE, message = FALSE}
+dead_age = as.numeric(dead$V1)
+dead_survival_month = as.numeric(dead$V15)
+ggplot(data = dead, aes(dead_age, dead_survival_month)) + geom_point() +geom_smooth(method = "lm", se = FALSE) + xlab("Age") + ylab("Survival Month")
+```
+
+##### Residual Plot
+
+``` {r}
+fit = lm(dead_survival_month ~ dead_age, data = dead)
+plot(fit, which = 1)
+```
+
+##### QQ Plot
+
+```{r}
+plot(fit, which = 2)
+```
+
+
+#### {-}
+
+## Limitations
+
+The data we used is from breast cancer patients between 2006 and 2010, which was quite a long time ago. This means the numbers might have changed by now, making the information outdated and possibly not entirely accurate. This is a limitation we need to consider when looking at the data.
