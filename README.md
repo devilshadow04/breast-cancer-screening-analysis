@@ -34,8 +34,8 @@ To reproduce the report from the `.Rmd` file, you’ll need:
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/<your-username>/<your-repo-name>.git
-   cd <your-repo-name>
+   git clone https://github.com/devilshadow04/breast-cancer-screening-analysis.git
+   cd breast-cancer-screening-analysis
    ```
 
 2. Ensure `breast_cancer.csv` is present in the same folder as `final_report.Rmd`.
@@ -53,8 +53,6 @@ To reproduce the report from the `.Rmd` file, you’ll need:
 You can view the pre-generated `final_report.html` in this repository directly:
 - Download it from GitHub
 - Double-click to open in your default browser
-
-(Optional) You can also host it via **GitHub Pages** to share an online link.
 
 ## Project Structure
 
